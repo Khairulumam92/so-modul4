@@ -1,11 +1,4 @@
 #!/bin/bash
-
-# ==================================================
-# PENILAIAN LENGKAP: EXERCISE 1-5 + PRACTICE 1-2
-# Case-insensitive untuk folder
-# Path absolut di $HOME
-# ==================================================
-
 HISTORY_FILE=~/.bash_history
 if [ ! -f "$HISTORY_FILE" ]; then
     echo "❌ File history tidak ditemukan. Jalankan 'history -a' terlebih dahulu."
@@ -16,10 +9,33 @@ pernah() {
     grep -q "$1" "$HISTORY_FILE"
 }
 
-# Fungsi mencari folder case-insensitive di $HOME
+# Fungsi mencari folder case-insensitive di HOME, PWD, dan subdirektori PWD
 cari_folder_case_insensitive() {
     local nama=$1
-    find "$HOME" -maxdepth 1 -type d -iname "$nama" | head -1
+    local hasil=""
+    
+    # Cari di HOME
+    hasil=$(find "$HOME" -maxdepth 1 -type d -iname "$nama" 2>/dev/null | head -1)
+    if [ -n "$hasil" ]; then
+        echo "$hasil"
+        return
+    fi
+    
+    # Cari di PWD (current directory)
+    hasil=$(find "$PWD" -maxdepth 1 -type d -iname "$nama" 2>/dev/null | head -1)
+    if [ -n "$hasil" ]; then
+        echo "$hasil"
+        return
+    fi
+    
+    # Cari di seluruh subdirektori PWD (kedalaman 3)
+    hasil=$(find "$PWD" -maxdepth 3 -type d -iname "$nama" 2>/dev/null | head -1)
+    if [ -n "$hasil" ]; then
+        echo "$hasil"
+        return
+    fi
+    
+    echo ""
 }
 
 # ==================== EXERCISE 1-5 ====================
@@ -108,11 +124,13 @@ echo "=============================================="
 DIR1=$(cari_folder_case_insensitive "LatihanProses1")
 SKOR1=0
 
+echo "🔍 Pencarian folder LatihanProses1..."
 if [ -n "$DIR1" ]; then
     echo "✅ Folder ditemukan: $DIR1"
     ((SKOR1+=10))
 else
-    echo "❌ Folder LatihanProses1 tidak ditemukan di $HOME"
+    echo "❌ Folder LatihanProses1 tidak ditemukan"
+    echo "   Dicari di: $HOME, $PWD, dan subdirektori PWD"
 fi
 
 if [ -n "$DIR1" ] && [ -f "$DIR1/loop.sh" ]; then
@@ -180,11 +198,12 @@ echo "=============================================="
 DIR2=$(cari_folder_case_insensitive "LatihanProses2")
 SKOR2=0
 
+echo "🔍 Pencarian folder LatihanProses2..."
 if [ -n "$DIR2" ]; then
     echo "✅ Folder ditemukan: $DIR2"
     ((SKOR2+=10))
 else
-    echo "❌ Folder LatihanProses2 tidak ditemukan di $HOME"
+    echo "❌ Folder LatihanProses2 tidak ditemukan"
 fi
 
 if [ -f "/etc/ssh/sshd_config.bak" ]; then
@@ -261,7 +280,6 @@ echo "📊 PRACTICE 1        : $SKOR1 / 100 ($grade_p1)"
 echo "📊 PRACTICE 2        : $SKOR2 / 100 ($grade_p2)"
 echo "=============================================="
 
-# Rata-rata jika diperlukan
 RATA=$(( (TOTAL_EX + SKOR1 + SKOR2) / 3 ))
 echo "⭐ RATA-RATA KESELURUHAN: $RATA / 100"
 if [ $RATA -ge 81 ]; then echo "🏆 FINAL GRADE: A (Sepuh)"
